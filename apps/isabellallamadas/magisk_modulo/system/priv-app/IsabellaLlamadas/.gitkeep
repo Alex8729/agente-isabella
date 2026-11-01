@@ -1,0 +1,2 @@
+# Preserva la carpeta para que empaquetar.sh pueda copiar aquí IsabellaLlamadas.apk.
+# El APK en sí se ignora (ver .gitignore raíz).

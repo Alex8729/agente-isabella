@@ -1,0 +1,9 @@
+{
+  "name": "agente-isabella-puente",
+  "private": true,
+  "type": "module",
+  "description": "Persona de Isabella (prompt/voz/colgar), generador de setup.json y Gemini falso para pruebas — Agente Isabella, por David Ruiz Duarte (viajatech)",
+  "author": "David Ruiz Duarte (viajatech) <https://viajatech.com>",
+  "license": "SEE LICENSE IN ../LICENSE",
+  "dependencies": { "ws": "^8.18.0" }
+}
