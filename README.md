@@ -6,6 +6,10 @@
 <h1 align="center">📞 Agente Isabella</h1>
 
 <p align="center">
+  <img alt="Agente Isabella — arte de viajatech" src="docs/img/portada-ciudad.jpg" width="330">
+</p>
+
+<p align="center">
   <b>Convierte un celular Android en una asistente de voz con IA que hace llamadas telefónicas reales.</b><br>
   Gemini Live (voz «Zephyr») · app Android propia · root con Magisk · Worker de Cloudflare para las llaves.<br>
   Creado por <b>David Ruiz Duarte</b> · <a href="https://viajatech.com"><b>viajatech</b></a>
@@ -101,6 +105,7 @@ puente/                  Persona de Isabella (EDITABLE), generador de setup y Ge
 herramientas/            Diagnóstico de la ruta raíz (prueba 0r) y escáner de secretos
 compilar.sh · instalar.sh · preparar_mac.sh · vincular_cel.sh · configurar_app.sh
 docs/                    Arquitectura, problemas resueltos y rescate si el cel no arranca tras el root
+  img/                   Arte del proyecto y la imagen de vista previa para redes
 ```
 
 ## Personaliza a Isabella
@@ -123,6 +128,9 @@ Si lo usas, lo compartes o haces un video, da crédito:
 > **Agente Isabella — creado por David Ruiz Duarte (viajatech)** · <https://viajatech.com> · <https://github.com/viajatech/agente-isabella>
 
 Sin garantía: rootear y flashear puede borrar tus datos o dañar tu equipo. No nos hacemos responsables del uso que le des.
+
+El arte de este repositorio (`docs/img/`) es de **viajatech** y queda cubierto por la misma licencia: no lo uses
+para otra cosa ni le quites el crédito.
 
 ### Sigue a viajatech
 
