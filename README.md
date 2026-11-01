@@ -100,7 +100,7 @@ token-worker/            Worker de Cloudflare: guarda tu llave y acuña tokens e
 puente/                  Persona de Isabella (EDITABLE), generador de setup y Gemini falso
 herramientas/            Diagnóstico de la ruta raíz (prueba 0r) y escáner de secretos
 compilar.sh · instalar.sh · preparar_mac.sh · vincular_cel.sh · configurar_app.sh
-docs/                    Arquitectura y problemas resueltos
+docs/                    Arquitectura, problemas resueltos y rescate si el cel no arranca tras el root
 ```
 
 ## Personaliza a Isabella

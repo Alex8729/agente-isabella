@@ -146,6 +146,10 @@ El root lo hace **la persona**, con el celular en la mano; tú la acompañas, ex
   control del firmware antes de flashear; flashear siempre el firmware **completo** (nunca particiones sueltas); tener
   **Wi-Fi listo** en el primer arranque después de desbloquear. Si el celular se queda en menús de arranque, aplica la
   regla 6 de la sección 0 y consulta la guía oficial; no improvises.
+- **Si tras el flasheo el celular cae en bucle a recovery, o samloader se cuelga en el pre-flight:**
+  **`docs/BOOT_RECOVERY.md`** recoge los parches que nos funcionaron (vbmeta disabled de 4 KB con `avbtool` de
+  AOSP, workaround del issue #43 de samloader-rs, truco del fastboot verde para apagar un cel en bootloop).
+  Pasos físicos: 🛑 persona.
 
 Verificación al terminar:
 ```bash
