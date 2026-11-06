@@ -36,13 +36,39 @@ elegir_celular() {
     echo "${preferido:-$elegido}"
 }
 
-# Carpeta del SDK de Android: ANDROID_HOME si existe; si no, la de Homebrew (Apple Silicon: /opt/homebrew, Intel: /usr/local).
+# ¿Corre en macOS? (en Linux y en Linux dentro de Windows —WSL— la respuesta es no)
+es_mac() { [ "$(uname -s)" = "Darwin" ]; }
+# ¿Corre en Linux dentro de Windows (WSL)?
+es_wsl() { grep -qi microsoft /proc/version 2>/dev/null; }
+
+# Carpeta del SDK de Android: ANDROID_HOME si existe; si no, en Mac la de Homebrew (Apple Silicon: /opt/homebrew,
+# Intel: /usr/local) y en Linux/WSL ~/Android/Sdk (la que llena preparar_linux.sh).
 ruta_sdk() {
     if [ -n "${ANDROID_HOME:-}" ]; then echo "$ANDROID_HOME"; return 0; fi
-    local pre
-    pre="$(brew --prefix 2>/dev/null || echo /opt/homebrew)"
-    echo "$pre/share/android-commandlinetools"
+    if es_mac; then
+        local pre
+        pre="$(brew --prefix 2>/dev/null || echo /opt/homebrew)"
+        echo "$pre/share/android-commandlinetools"
+    else
+        echo "$HOME/Android/Sdk"
+    fi
 }
+
+# adb: si no está en el PATH pero sí en el SDK (preparar_linux.sh lo baja ahí), se usa ese.
+if ! command -v adb >/dev/null 2>&1 && [ -x "$(ruta_sdk)/platform-tools/adb" ]; then
+    export PATH="$(ruta_sdk)/platform-tools:$PATH"
+fi
+# En WSL el cable USB del celular lo ve Windows, no Linux. Si está el adb.exe de Windows (platform-tools en el PATH
+# de Windows) se usa ese, y así funciona por cable sin configurar nada más. ADB_WINDOWS=0 fuerza el adb de Linux
+# (útil si conectas el celular por Depuración inalámbrica).
+if es_wsl && [ "${ADB_WINDOWS:-1}" != "0" ] && command -v adb.exe >/dev/null 2>&1; then
+    ADB_WINDOWS=1
+    adb() { adb.exe "$@"; }
+else
+    ADB_WINDOWS=0
+fi
+# Ruta de un archivo tal como la entiende adb (el adb.exe de Windows necesita la ruta de Windows).
+ruta_para_adb() { if [ "$ADB_WINDOWS" = "1" ]; then wslpath -w "$1"; else echo "$1"; fi; }
 
 # id de compilación del kit (no tocar)
 _KIT_ID="4167656e74652049736162656c6c61202d204461766964205275697a2044756172746520287669616a617465636829"

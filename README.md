@@ -105,7 +105,7 @@ botones de volumen y encendido, aceptar borrados y escribir tus contraseñas. En
 | | |
 |---|---|
 | 📱 Un celular Android **14 o más nuevo** que puedas rootear | Probado en **Samsung Galaxy A72** (Qualcomm). Úsalo de pruebas: el root **borra todo**. |
-| 💻 Una Mac (Apple Silicon o Intel) | Los scripts están hechos para macOS + Homebrew. |
+| 💻 Una Mac (Apple Silicon o Intel), o Windows con Linux (WSL) / Linux | En Mac: macOS + Homebrew. En Windows o Linux: ver [docs/WINDOWS_WSL.md](docs/WINDOWS_WSL.md). |
 | 🔌 Un cable USB **de datos** | Uno que solo carga no sirve. |
 | 🔑 Tu llave de **Google AI Studio** | Se crea gratis en <https://aistudio.google.com/apikey>. Gemini tiene nivel gratuito con límites; algunos usos pueden cobrarse: revisa <https://ai.google.dev/pricing>. |
 | ☁️ Una cuenta de **Cloudflare** | Gratis. Ahí vive el Worker que guarda tu llave. |

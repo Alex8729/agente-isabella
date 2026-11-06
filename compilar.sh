@@ -13,28 +13,48 @@ DIR="$RAIZ/apps/$APP"
 [ -f "$DIR/app.conf" ] || { echo "No existe $DIR/app.conf" >&2; exit 1; }
 source "$DIR/app.conf"   # NOMBRE, PAQUETE, VERSION_NOMBRE
 
-export JAVA_HOME="${JAVA_HOME:-$HOME/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home}"
-export PATH="$JAVA_HOME/bin:$PATH"
+if es_mac; then
+    export JAVA_HOME="${JAVA_HOME:-$HOME/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home}"
+    export PATH="$JAVA_HOME/bin:$PATH"
+elif [ -n "${JAVA_HOME:-}" ]; then
+    export PATH="$JAVA_HOME/bin:$PATH"
+fi   # en Linux/WSL, sin JAVA_HOME, se usa el Java 17 del sistema (preparar_linux.sh lo instala)
 SDK="$(ruta_sdk)"
 BT="$SDK/build-tools/34.0.0"
 ANDROID_JAR="$SDK/platforms/android-34/android.jar"
 LLAVE="$RAIZ/llaves/agente-isabella.jks"
 ALIAS=agente-isabella
 
-# Llave de firma: es TUYA. Se crea una sola vez en llaves/ (fuera de git). Su contraseña vive en el Llavero de macOS
-# (servicio «agente-isabella-keystore») y nunca se imprime. Respalda llaves/ : sin esa llave no podrás ACTUALIZAR la
-# app ya instalada (habría que desinstalarla y volver a instalar).
-contrasena_llave() { security find-generic-password -a "$USER" -s agente-isabella-keystore -w 2>/dev/null; }
+# Llave de firma: es TUYA. Se crea una sola vez en llaves/ (fuera de git). Su contraseña nunca se imprime: en Mac vive
+# en el Llavero de macOS (servicio «agente-isabella-keystore»); en Linux/WSL, en llaves/.contrasena (solo tu usuario
+# puede leerla). Respalda llaves/ : sin esa llave no podrás ACTUALIZAR la app ya instalada (habría que desinstalarla y
+# volver a instalar).
+ARCHIVO_CONTRASENA="$RAIZ/llaves/.contrasena"
+contrasena_llave() {
+    if es_mac; then
+        security find-generic-password -a "$USER" -s agente-isabella-keystore -w 2>/dev/null
+    else
+        [ -s "$ARCHIVO_CONTRASENA" ] && cat "$ARCHIVO_CONTRASENA"
+    fi
+}
+guardar_contrasena_nueva() {
+    if es_mac; then
+        security add-generic-password -a "$USER" -s agente-isabella-keystore -U -w "$(openssl rand -base64 24)"
+    else
+        (umask 077; openssl rand -base64 24 | tr -d '\n' > "$ARCHIVO_CONTRASENA")
+    fi
+}
 if [ ! -f "$LLAVE" ]; then
     mkdir -p "$RAIZ/llaves"; chmod 700 "$RAIZ/llaves"
     if ! contrasena_llave >/dev/null; then
-        security add-generic-password -a "$USER" -s agente-isabella-keystore -U -w "$(openssl rand -base64 24)"
+        guardar_contrasena_nueva
     fi
     KS_PASS="$(contrasena_llave)" keytool -genkeypair -keystore "$LLAVE" \
         -alias "$ALIAS" -keyalg RSA -keysize 4096 -validity 36500 \
         -dname "CN=Agente Isabella, OU=Basado en Agente Isabella de David Ruiz Duarte - viajatech, C=MX" \
         -storepass:env KS_PASS -keypass:env KS_PASS
-    echo "Llave nueva (tuya): $LLAVE  — respáldala; su contraseña quedó en el Llavero de macOS."
+    if es_mac; then DONDE="el Llavero de macOS"; else DONDE="llaves/.contrasena"; fi
+    echo "Llave nueva (tuya): $LLAVE  — respáldala; su contraseña quedó en $DONDE."
 fi
 
 # Todo lo intermedio va a una carpeta temporal nueva; solo el APK final queda en apps/<app>/build/.
