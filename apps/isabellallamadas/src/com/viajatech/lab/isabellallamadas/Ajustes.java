@@ -93,6 +93,47 @@ final class Ajustes {
         }
     }
 
+    // --- Contestar llamadas entrantes (Alex8729, ver CAMBIOS.md) -----------------------------------------
+    // Apagado por omisión. Solo contesta números de la lista de permitidos: Isabella es para pruebas personales.
+    private static final String CLAVE_CONTESTAR = "contestar_entrantes";
+    private static final String CLAVE_PERMITIDOS = "numeros_permitidos";
+
+    static boolean contestar(Context ctx) {
+        return prefs(ctx).getBoolean(CLAVE_CONTESTAR, false);
+    }
+
+    static boolean guardarContestar(Context ctx, boolean si) {
+        return prefs(ctx).edit().putBoolean(CLAVE_CONTESTAR, si).commit();
+    }
+
+    static String permitidos(Context ctx) {
+        return prefs(ctx).getString(CLAVE_PERMITIDOS, "");
+    }
+
+    static boolean guardarPermitidos(Context ctx, String lista) {
+        return prefs(ctx).edit().putString(CLAVE_PERMITIDOS, lista == null ? "" : lista.trim()).commit();
+    }
+
+    /** ¿`numero` está en la lista (separada por comas o punto y coma)? Compara los últimos 10 dígitos, así
+     *  «+57 300 123 4567» y «3001234567» cuentan como el mismo. Lista vacía o número vacío = no. */
+    static boolean numeroPermitido(String lista, String numero) {
+        String n = soloDigitos(numero);
+        if (lista == null || n.length() < 7) return false;
+        for (String p : lista.split("[,;\\n]+")) {
+            String d = soloDigitos(p);
+            if (d.length() >= 7 && ultimos(d, 10).equals(ultimos(n, 10))) return true;
+        }
+        return false;
+    }
+
+    private static String soloDigitos(String s) {
+        return s == null ? "" : s.replaceAll("[^0-9]", "");
+    }
+
+    private static String ultimos(String s, int n) {
+        return s.length() <= n ? s : s.substring(s.length() - n);
+    }
+
     private static SharedPreferences prefs(Context ctx) {
         return ctx.getSharedPreferences(Tokens.PREFS, Context.MODE_PRIVATE);
     }
