@@ -3,9 +3,12 @@
 // Agente Isabella · Autor: David Ruiz Duarte (viajatech). Uso no comercial y con atribución: ver LICENSE y NOTICE.
 package com.viajatech.lab.isabellallamadas;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.telecom.Call;
 import android.telecom.CallAudioState;
 import android.telecom.InCallService;
+import android.telecom.VideoProfile;
 
 /**
  * InCallService OPCIONAL y NO visual (meta-data android.telecom.IN_CALL_SERVICE_UI = false).
@@ -19,6 +22,10 @@ import android.telecom.InCallService;
  *
  * Solo sigue la llamada SALIENTE de la app: con el appop, el sistema también le avisa de las entrantes
  * (o de una en espera), y esas se ignoran para no colgar ni confundir la de Isabella.
+ *
+ * Cambio de Alex8729: si «contestar» está activado (config --es contestar 1) y el número que llama está en la lista
+ * de permitidos (config --es permitidos "…"), una entrante que timbra se le pasa a LlamadaService, que abre la
+ * sesión de Isabella y la contesta con contestarEntrante(). Las demás entrantes se siguen ignorando.
  *
  * Si el appop no está concedido, el sistema no liga esto y la app funciona igual que antes por la
  * ruta clásica de LlamadaService (OFFHOOK + altavoz al marcar). LlamadaService.EstadoLlamada
@@ -66,6 +73,31 @@ public class ServicioEnLlamada extends InCallService {
                 + (a.isMuted() ? " · silenciada" : "");
     }
 
+    /** Alex8729: contesta la entrante que se le pasó a LlamadaService. false si ya no está timbrando. */
+    static boolean contestarEntrante() {
+        Call c = llamada;
+        if (c == null || c.getState() != Call.STATE_RINGING) return false;
+        try {
+            c.answer(VideoProfile.STATE_AUDIO_ONLY);
+            return true;
+        } catch (Exception e) {
+            Bitacora.log("InCallService: answer falló: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /** Alex8729: deja de seguir una entrante que al final no se contesta (otra sesión en curso): sigue timbrando normal. */
+    static void soltarEntrante() {
+        ServicioEnLlamada s = instancia;
+        Call c = llamada;
+        if (s == null || c == null || !esEntrante(c)) return;
+        try {
+            c.unregisterCallback(s.callback);
+        } catch (Exception ignorado) {
+        }
+        llamada = null;
+    }
+
     static void colgar() {
         Call c = llamada;
         if (c != null) {
@@ -96,7 +128,20 @@ public class ServicioEnLlamada extends InCallService {
     public void onCallAdded(Call call) {
         super.onCallAdded(call);
         if (esEntrante(call)) {
-            Bitacora.log("InCallService: llamada entrante; no es de la app, la ignoro.");
+            if (!quiereContestar(call)) return;
+            llamada = call;
+            call.registerCallback(callback);
+            String numero = numeroDe(call);
+            Bitacora.log("InCallService: llamada entrante de un número permitido; se la paso a Isabella.");
+            try {
+                Intent i = new Intent(this, LlamadaService.class)
+                        .putExtra(LlamadaService.EXTRA_CMD, "contestar")
+                        .putExtra(LlamadaService.EXTRA_NUMERO, numero);
+                startForegroundService(i);
+            } catch (Exception e) {
+                Bitacora.log("InCallService: no pude arrancar a Isabella para la entrante (" + e.getMessage() + "); la dejo timbrar.");
+                soltarEntrante();
+            }
             return;
         }
         llamada = call;
@@ -126,6 +171,33 @@ public class ServicioEnLlamada extends InCallService {
     public void onCallAudioStateChanged(CallAudioState audioState) {
         super.onCallAudioStateChanged(audioState);
         if (llamada != null) Bitacora.log("InCallService: ruta de audio → " + describir(audioState) + ".");
+    }
+
+    /** Alex8729: ¿Isabella debe contestar esta entrante? Solo si está activado, timbra, no hay otra llamada que
+     *  se siga y el número está en la lista de permitidos. Las demás siguen como cualquier llamada. */
+    private boolean quiereContestar(Call call) {
+        if (!Ajustes.contestar(this)) {
+            Bitacora.log("InCallService: llamada entrante; «contestar» está apagado, la ignoro.");
+            return false;
+        }
+        if (call.getState() != Call.STATE_RINGING || llamada != null) {
+            Bitacora.log("InCallService: llamada entrante que no timbra o con otra en curso; la ignoro.");
+            return false;
+        }
+        if (!Ajustes.numeroPermitido(Ajustes.permitidos(this), numeroDe(call))) {
+            Bitacora.log("InCallService: llamada entrante de un número que no está en la lista de permitidos; la ignoro.");
+            return false;
+        }
+        return true;
+    }
+
+    private static String numeroDe(Call call) {
+        try {
+            Uri u = call.getDetails().getHandle();
+            return u != null ? u.getSchemeSpecificPart() : "";
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     private static boolean esEntrante(Call call) {

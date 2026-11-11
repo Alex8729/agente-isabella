@@ -427,11 +427,13 @@ public class PruebaMac {
             return new android.content.SharedPreferences() {
                 public String getString(String k, String d) { Object v = m.get(k); return v instanceof String ? (String) v : d; }
                 public int getInt(String k, int d) { Object v = m.get(k); return v instanceof Integer ? (Integer) v : d; }
+                public boolean getBoolean(String k, boolean d) { Object v = m.get(k); return v instanceof Boolean ? (Boolean) v : d; }
                 public Editor edit() {
                     final java.util.Map<String, Object> cambios = new java.util.HashMap<>();
                     return new Editor() {
                         public Editor putString(String k, String v) { cambios.put(k, v); return this; }
                         public Editor putInt(String k, int v) { cambios.put(k, v); return this; }
+                        public Editor putBoolean(String k, boolean v) { cambios.put(k, v); return this; }
                         public void apply() { m.putAll(cambios); }
                         public boolean commit() { m.putAll(cambios); return true; }
                     };

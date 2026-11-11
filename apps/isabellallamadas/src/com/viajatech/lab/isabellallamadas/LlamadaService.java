@@ -127,6 +127,8 @@ public class LlamadaService extends Service {
     static final String EXTRA_TOKENURL = "tokenurl"; // https:// = Worker de producción (como worker); en modo prueba, el local http://127.0.0.1:8797/token
     static final String EXTRA_SECRETO_PRUEBA = "secreto_prueba"; // modo prueba: secreto FALSO, solo en memoria
     static final String EXTRA_RAIZ = "raiz";                      // 2.7: 1 = usar tinymix+tinyplay+tinycap vía su (ruta I-3 real)
+    static final String EXTRA_CONTESTAR = "contestar";            // Alex8729: con `config`, 1 = Isabella contesta entrantes de números permitidos (se guarda)
+    static final String EXTRA_PERMITIDOS = "permitidos";          // Alex8729: con `config`, lista de números que Isabella puede contestar (se guarda)
     static final String EXTRA_SALUDAR = "saludar";                // 2.7: 1 = Isabella saluda apenas conecte (sin esperar los 12 s de respaldo)
     static final String EXTRA_WAV_CONTESTAR = "wav_contestar";    // 2.7: ruta a WAV PCM 16-bit mono 16 kHz que se reproduce al pasar la línea a ACTIVE (requiere raiz=1)
     static final String EXTRA_FRASE = "frase";                    // 2.7: texto del saludo inmediato (sólo con --es saludar 1); si no viene, se usa SISTEMA_SALUDO canónico
@@ -198,6 +200,7 @@ public class LlamadaService extends Service {
 
     // Sesión abierta ANTES de marcar (espec §11.1) y conversación desde la activa.
     private volatile boolean enCurso;           // hay un modo en marcha: otro «llamar» se ignora
+    private boolean entrante;                   // Alex8729: esta orden CONTESTA una llamada entrante en vez de marcar
     private boolean marcarAlEstarLista;         // MODO_LLAMAR: se marca al llegar setupComplete
     private boolean sesionFueLista;             // ¿llegó setupComplete en esta llamada?
     private boolean tokenDelWorker;             // el token salió del Worker (se puede pedir otro UNA vez)
@@ -330,6 +333,19 @@ public class LlamadaService extends Service {
                 }
                 iniciar("llamar".equals(cmd) ? MODO_LLAMAR : "solo_marcar".equals(cmd) ? MODO_SOLO_MARCAR : MODO_ISABELLA);
                 break;
+            case "contestar": // Alex8729: lo manda ServicioEnLlamada cuando entra una llamada de un número permitido
+                if (enCurso) {
+                    Bitacora.log("Entra una llamada pero ya hay otra sesión en curso (" + modo + "); no la contesto.");
+                    ServicioEnLlamada.soltarEntrante();
+                    break;
+                }
+                prepararOrden();
+                aplicarConfig(intent);
+                entrante = true;
+                saludarAlContestar = true; // quien llama espera que le contesten: Isabella saluda primero
+                Bitacora.log("Llamada entrante de " + numero + ": abro la sesión de Isabella y contesto cuando esté lista.");
+                iniciar(MODO_LLAMAR);
+                break;
             case "colgar":
                 terminar("orden de colgar");
                 break;
@@ -384,6 +400,7 @@ public class LlamadaService extends Service {
      * Las perillas de audio (fuente, uso, aec) sí se quedan: fisica.sh y matriz.sh las fijan con `config` sin guardarlas.
      */
     private void prepararOrden() {
+        entrante = false;
         rutaClasica = false;
         rutaRaiz = false;
         saludarAlContestar = false;
@@ -437,6 +454,19 @@ public class LlamadaService extends Service {
                 modoPreambulo = m;
                 if (persistir && !Ajustes.guardarModo(this, m)) Bitacora.log("No pude guardar el modo; vale solo para esta vez.");
             }
+        }
+        if (intent.hasExtra(EXTRA_CONTESTAR)) {
+            if (!persistir) Bitacora.log("«contestar» solo se cambia con la orden config.");
+            else {
+                boolean si = "1".equals(valor(intent.getStringExtra(EXTRA_CONTESTAR)));
+                if (!Ajustes.guardarContestar(this, si)) Bitacora.log("No pude guardar «contestar».");
+                else Bitacora.log(si ? "Contestar entrantes: ACTIVADO (solo números permitidos)." : "Contestar entrantes: apagado.");
+            }
+        }
+        if (intent.hasExtra(EXTRA_PERMITIDOS)) {
+            if (!persistir) Bitacora.log("«permitidos» solo se cambia con la orden config.");
+            else if (!Ajustes.guardarPermitidos(this, valor(intent.getStringExtra(EXTRA_PERMITIDOS)))) Bitacora.log("No pude guardar los números permitidos.");
+            else Bitacora.log("Números permitidos para contestar guardados (" + Ajustes.permitidos(this).split("[,;\\n]+").length + ").");
         }
         if (intent.hasExtra(EXTRA_RUTA_CLASICA)) rutaClasica = "1".equals(valor(intent.getStringExtra(EXTRA_RUTA_CLASICA)));
         if (intent.hasExtra(EXTRA_RAIZ)) {
@@ -736,6 +766,22 @@ public class LlamadaService extends Service {
         synchronized (turnoIsabella) {
             turnoIsabella.setLength(0);
         }
+    }
+
+    /** Alex8729: la versión entrante de marcarAhora(): la sesión ya está lista, así que se contesta la llamada que
+     *  timbra. Al pasar a STATE_ACTIVE, el InCallService llama a alActivaReal y empieza la conversación como siempre. */
+    private void contestarAhora() {
+        registrarCallback();
+        estadoLlamada = "dialing";
+        tMarcadoMs = System.currentTimeMillis();
+        armarVigilante();
+        actualizarNotificacion("Contestando", numero);
+        if (!ServicioEnLlamada.contestarEntrante()) {
+            Bitacora.log("La llamada entrante ya no está (colgaron antes de que Isabella estuviera lista).");
+            terminar("colgaron antes de contestar", true);
+            return;
+        }
+        Bitacora.log("Contesté la llamada de " + numero + " · techo " + maxMin + " min · modo " + modoPreambulo + ".");
     }
 
     // La marcación en sí: en MODO_LLAMAR, después del setupComplete; en MODO_SOLO_MARCAR, de inmediato.
@@ -1300,8 +1346,13 @@ public class LlamadaService extends Service {
         }
         if (marcarAlEstarLista) {
             marcarAlEstarLista = false;
-            Bitacora.log("Isabella conectada (setupComplete). Ahora sí marco.");
-            marcarAhora();
+            if (entrante) {
+                Bitacora.log("Isabella conectada (setupComplete). Contesto la llamada entrante.");
+                contestarAhora();
+            } else {
+                Bitacora.log("Isabella conectada (setupComplete). Ahora sí marco.");
+                marcarAhora();
+            }
         }
     }
 
