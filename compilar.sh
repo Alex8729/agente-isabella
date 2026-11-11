@@ -64,7 +64,7 @@ VERSION_CODIGO=$(( $(date +%s) / 60 ))   # crece solo: cada compilación puede a
 
 "$BT/aapt2" compile --dir "$DIR/res" -o "$T/res.zip"
 "$BT/aapt2" link -o "$T/base.apk" -I "$ANDROID_JAR" --manifest "$DIR/AndroidManifest.xml" -R "$T/res.zip" \
-    --java "$T/gen" --auto-add-overlay --min-sdk-version 34 --target-sdk-version 34 \
+    --java "$T/gen" --auto-add-overlay --min-sdk-version 33 --target-sdk-version 34 \
     --version-code "$VERSION_CODIGO" --version-name "$VERSION_NOMBRE"
 
 find "$DIR/src" "$T/gen" -name '*.java' > "$T/fuentes.txt"
@@ -72,7 +72,7 @@ find "$DIR/src" "$T/gen" -name '*.java' > "$T/fuentes.txt"
 javac -encoding UTF-8 -source 8 -target 8 -Xlint:-options -bootclasspath "$ANDROID_JAR:$BT/core-lambda-stubs.jar" \
     -d "$T/clases" @"$T/fuentes.txt"
 (cd "$T/clases" && jar cf "$T/clases.jar" .)
-"$BT/d8" --release --min-api 34 --lib "$ANDROID_JAR" --output "$T/dex" "$T/clases.jar"
+"$BT/d8" --release --min-api 33 --lib "$ANDROID_JAR" --output "$T/dex" "$T/clases.jar"
 (cd "$T/dex" && zip -q -j "$T/base.apk" classes.dex)
 
 "$BT/zipalign" -f -p 4 "$T/base.apk" "$T/alineado.apk"
