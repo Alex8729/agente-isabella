@@ -52,7 +52,8 @@ sw_vers; uname -m                      # macOS y arquitectura (arm64 = Apple Sil
 command -v brew adb java npx || true   # qué ya existe
 ```
 Pregunta: **marca y modelo exacto del celular** (Ajustes › Acerca del teléfono) y **versión de Android**.
-- Android **menor a 14** → la app no instala (minSdk 34). Detente y explícalo.
+- Android **menor a 13** → la app no instala (minSdk 33). Con Android 13 instala, pero el proyecto original solo se probó
+  en Android 14: dilo y vigila la bitácora (cambio de Alex8729, ver `CAMBIOS.md`).
 - Probado en **Samsung Galaxy A72 (SM-A725M, Qualcomm)**. Otros Qualcomm suelen tener mezcladores parecidos; MediaTek o
   Exynos pueden requerir adaptación (ver `docs/ARQUITECTURA.md`). Dilo con honestidad antes de la fase 5.
 - Recomienda usar un **celular de pruebas**, no el de uso diario.

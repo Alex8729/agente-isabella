@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img alt="Android 14+" src="https://img.shields.io/badge/Android-14%2B-1FE03C?style=for-the-badge&logo=android&logoColor=white&labelColor=0E0D14">
+  <img alt="Android 13+" src="https://img.shields.io/badge/Android-13%2B-1FE03C?style=for-the-badge&logo=android&logoColor=white&labelColor=0E0D14">
   <img alt="Gemini Live, voz Zephyr" src="https://img.shields.io/badge/Gemini_Live-voz_Zephyr-FF2A6D?style=for-the-badge&logo=googlegemini&logoColor=white&labelColor=0E0D14">
   <img alt="Root con Magisk" src="https://img.shields.io/badge/root-Magisk-6C5CFF?style=for-the-badge&labelColor=0E0D14">
   <img alt="Cloudflare Workers" src="https://img.shields.io/badge/Cloudflare-Workers-F38020?style=for-the-badge&logo=cloudflare&logoColor=white&labelColor=0E0D14">
@@ -104,7 +104,7 @@ botones de volumen y encendido, aceptar borrados y escribir tus contraseñas. En
 
 | | |
 |---|---|
-| 📱 Un celular Android **14 o más nuevo** que puedas rootear | Probado en **Samsung Galaxy A72** (Qualcomm). Úsalo de pruebas: el root **borra todo**. |
+| 📱 Un celular Android **13 o más nuevo** que puedas rootear (probado en 14) | Probado en **Samsung Galaxy A72** (Qualcomm). Úsalo de pruebas: el root **borra todo**. |
 | 💻 Una Mac (Apple Silicon o Intel), o Windows con Linux (WSL) / Linux | En Mac: macOS + Homebrew. En Windows o Linux: ver [docs/WINDOWS_WSL.md](docs/WINDOWS_WSL.md). |
 | 🔌 Un cable USB **de datos** | Uno que solo carga no sirve. |
 | 🔑 Tu llave de **Google AI Studio** | Se crea gratis en <https://aistudio.google.com/apikey>. Gemini tiene nivel gratuito con límites; algunos usos pueden cobrarse: revisa <https://ai.google.dev/pricing>. |
@@ -202,7 +202,7 @@ no los uses para otra cosa ni les quites el crédito.
 <details>
 <summary><b>English summary</b></summary>
 
-**Agente Isabella** turns a rooted Android phone (Android 14+) into an AI voice assistant that places **real phone
+**Agente Isabella** turns a rooted Android phone (Android 13+, tested on 14) into an AI voice assistant that places **real phone
 calls** over your own SIM, powered by **Google Gemini Live** (voice "Zephyr"). Audio is injected digitally into the
 call through the Qualcomm audio mixers via Magisk root (`tinyplay`/`tinycap`), so there's no echo and no speakerphone.
 Your Gemini API key never touches the phone: a free **Cloudflare Worker** stores it and mints single-use ephemeral
