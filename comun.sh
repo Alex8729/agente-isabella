@@ -10,7 +10,7 @@
 #   si hay dos celulares distintos, pide elegir con CEL para no instalar en el equivocado.
 elegir_celular() {
     local lista d serie series="" elegido="" preferido=""
-    lista="$(adb devices | awk 'NR > 1 && $2 == "device" {print $1}')"
+    lista="$(adb devices | tr -d '\r' | awk 'NR > 1 && $2 == "device" {print $1}')"
     if [ -z "$lista" ]; then
         echo "No hay celular conectado: prende la Depuración inalámbrica (misma red Wi-Fi) o conecta el cable." >&2
         return 1

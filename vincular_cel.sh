@@ -13,7 +13,7 @@ set -euo pipefail
 CODIGO="${1:?Uso: ./vincular_cel.sh <código de 6 dígitos que muestra el celular> [ip:puerto]}"
 source "$(dirname "$0")/comun.sh"
 SERVICIO="${2:-}"
-[ -n "$SERVICIO" ] || SERVICIO="$(adb mdns services | awk '/_adb-tls-pairing/ {print $NF; exit}')"
+[ -n "$SERVICIO" ] || SERVICIO="$(adb mdns services | tr -d '\r' | awk '/_adb-tls-pairing/ {print $NF; exit}')"
 if [ -z "$SERVICIO" ]; then
     echo "No veo ningún celular esperando vinculación. Revisa que el cel y la computadora estén en la misma red Wi-Fi" >&2
     echo "y que la ventana «Vincular dispositivo con código» siga abierta en el celular." >&2
