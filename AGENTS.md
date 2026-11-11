@@ -28,6 +28,9 @@ de la persona, con pasos cortos, y confirma cada resultado antes de seguir.
    No inventes combinaciones de botones: consulta la documentación oficial del modelo.
 7. **Atribución.** Si la persona publica su copia o un video, recuérdale el crédito de la sección 3 de `LICENSE`.
 
+> **¿La persona no tiene Mac?** Con Windows (WSL) o Linux, sigue también `docs/WINDOWS_WSL.md`: cambia las fases
+> 0, 1, 2 y 4 (`./preparar_linux.sh` en lugar de `./preparar_mac.sh`, y cómo conectar el celular desde WSL).
+
 ## 1. Mapa del proceso
 
 | Fase | Qué | Quién | Tiempo aprox. |

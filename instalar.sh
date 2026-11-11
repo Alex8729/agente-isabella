@@ -14,9 +14,9 @@ APK="$RAIZ/apps/$APP/build/$APP.apk"
 
 DISPOSITIVO="$(elegir_celular)"
 MODELO="$(adb -s "$DISPOSITIVO" shell getprop ro.product.model | tr -d '\r')"
-adb -s "$DISPOSITIVO" install -r "$APK"
+adb -s "$DISPOSITIVO" install -r "$(ruta_para_adb "$APK")"
 if [ -f "$RAIZ/apps/$APP/despues_de_instalar.sh" ]; then
-    ADB="adb -s $DISPOSITIVO" bash "$RAIZ/apps/$APP/despues_de_instalar.sh"
+    ADB="$([ "$ADB_WINDOWS" = "1" ] && echo adb.exe || echo adb) -s $DISPOSITIVO" bash "$RAIZ/apps/$APP/despues_de_instalar.sh"
 fi
 echo "Instalada: $APP en $MODELO ($DISPOSITIVO)"
 echo "Siguiente paso: permisos especiales y configuración (AGENTS.md, fase 6)."

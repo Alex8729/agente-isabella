@@ -6,6 +6,7 @@
 export PATH="/opt/homebrew/bin:$PATH"
 LLAMADAS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RAIZ="$(cd "$LLAMADAS/../.." && pwd)"
+source "$RAIZ/comun.sh"   # elegir_celular, y en WSL el adb.exe de Windows si hace falta
 REGISTROS="$LLAMADAS/registros"
 PAQUETE=com.viajatech.lab.isabellallamadas
 # Tu configuración local (NO va a git): copia mi_config.env.example a mi_config.env y llénalo.
@@ -52,7 +53,7 @@ candado_tomar() {   # candado_tomar <id del cel> <guion> [--forzar]
         echo "⚠️  Candado saltado con --forzar (${guion})." >&2
     else
         if [ -s "$EN_CURSO" ]; then
-            edad=$(( $(date +%s) - $(stat -f %m "$EN_CURSO") ))
+            edad=$(( $(date +%s) - $(stat -f %m "$EN_CURSO" 2>/dev/null || stat -c %Y "$EN_CURSO") ))
             if [ "$edad" -lt 180 ]; then
                 echo "⛔ Candado: hay otra prueba en curso según registros/.en_curso («$(cat "$EN_CURSO")», hace ${edad} s)." >&2
                 echo "   Si de verdad no corre nada: --forzar." >&2
