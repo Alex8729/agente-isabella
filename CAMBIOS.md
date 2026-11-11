@@ -12,3 +12,5 @@ Cambios de Alex8729:
   `docs/WINDOWS_WSL.md`.
 - **Android 13** (2026-11-11): la app se compila con `minSdk 33` en vez de 34 para poder instalarla en un POCO X3 GT
   con Android 13. El código no usa funciones exclusivas de Android 14, pero esto no se ha probado en un celular real.
+- **Guion de vendedora** (2026-11-11): en `puente/lib/isabella.mjs`, Isabella llama a nombre de Alex y en modo
+  «servicios» ofrece sus servicios de desarrollo de software. Se mantienen la presentación como IA y los créditos.
